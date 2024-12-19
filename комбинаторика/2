@@ -1,0 +1,49 @@
+class UnionFind:
+    def __init__(self, size):
+        """
+        Инициализация структуры данных.
+        :param size: количество элементов в множестве.
+        """
+        self.parent = [i for i in range(size)]  # Каждый элемент — корень своего дерева
+        self.rank = [0] * size  # Ранг для ранговой эвристики
+
+    def find(self, u):
+        """
+        Поиск корня дерева, к которому принадлежит элемент u.
+        Применяется сжатие путей.
+        :param u: элемент, для которого ищем корень.
+        :return: корень дерева.
+        """
+        if self.parent[u] != u:
+            self.parent[u] = self.find(self.parent[u])  # Сжатие путей
+        return self.parent[u]
+
+    def union(self, u, v):
+        """
+        Объединение двух множеств, к которым принадлежат элементы u и v.
+        Используется ранговая эвристика.
+        :param u: первый элемент.
+        :param v: второй элемент.
+        """
+        root_u = self.find(u)
+        root_v = self.find(v)
+
+        if root_u != root_v:
+            # Ранговая эвристика: присоединяем дерево с меньшим рангом к дереву с большим рангом
+            if self.rank[root_u] > self.rank[root_v]:
+                self.parent[root_v] = root_u
+            elif self.rank[root_u] < self.rank[root_v]:
+                self.parent[root_u] = root_v
+            else:
+                # Если ранги равны, выбираем одно дерево в качестве корня и увеличиваем его ранг
+                self.parent[root_v] = root_u
+                self.rank[root_u] += 1
+
+    def is_connected(self, u, v):
+        """
+        Проверка, принадлежат ли элементы u и v одному множеству.
+        :param u: первый элемент.
+        :param v: второй элемент.
+        :return: True, если элементы принадлежат одному множеству, иначе False.
+        """
+        return self.find(u) == self.find(v)
