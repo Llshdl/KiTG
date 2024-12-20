@@ -1,0 +1,64 @@
+from collections import deque
+
+class Edge:
+    def __init__(self, to, rev, capacity):
+        self.to = to  # Вершина, в которую ведет ребро
+        self.rev = rev  # Индекс обратного ребра в списке смежности вершины `to`
+        self.capacity = capacity  # Пропускная способность ребра
+
+class FordFulkerson:
+    def __init__(self, N):
+        self.size = N  # Количество вершин
+        self.graph = [[] for _ in range(N)]  # Список смежности
+
+    def add_edge(self, frm, to, capacity):
+        forward = Edge(to, len(self.graph[to]), capacity)
+        backward = Edge(frm, len(self.graph[frm]), 0)
+        self.graph[frm].append(forward)
+        self.graph[to].append(backward)
+
+    def dfs(self, v, t, flow, visited):
+        if v == t:
+            return flow
+        visited[v] = True
+        for edge in self.graph[v]:
+            if not visited[edge.to] and edge.capacity > 0:
+                dfs_flow = self.dfs(edge.to, t, min(flow, edge.capacity), visited)
+                if dfs_flow > 0:
+                    edge.capacity -= dfs_flow
+                    self.graph[edge.to][edge.rev].capacity += dfs_flow
+                    return dfs_flow
+        return 0
+
+    def max_flow(self, s, t):
+        flow = 0
+        while True:
+            visited = [False] * self.size
+            pushed_flow = self.dfs(s, t, float('inf'), visited)
+            if pushed_flow == 0:
+                break
+            flow += pushed_flow
+        return flow
+
+# Пример использования
+if __name__ == "__main__":
+    N = 6  # Количество вершин
+    s = 0  # Исток
+    t = 5  # Сток
+
+    # Создаем сеть
+    network = FordFulkerson(N)
+    network.add_edge(0, 1, 16)
+    network.add_edge(0, 2, 13)
+    network.add_edge(1, 2, 10)
+    network.add_edge(1, 3, 12)
+    network.add_edge(2, 1, 4)
+    network.add_edge(2, 4, 14)
+    network.add_edge(3, 2, 9)
+    network.add_edge(3, 5, 20)
+    network.add_edge(4, 3, 7)
+    network.add_edge(4, 5, 4)
+
+    # Вычисляем максимальный поток
+    max_flow = network.max_flow(s, t)
+    print(f"Максимальный поток: {max_flow}")
